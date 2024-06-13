@@ -1,3 +1,5 @@
+import { panic } from "./stdio";
+
 export class Option<T> {
     private inner?: T;
     constructor(value: T | undefined) {
@@ -6,7 +8,18 @@ export class Option<T> {
 
     public unwrap(): T {
         if (this.inner === undefined) {
-            
+            panic("Attempt to unwrap a None variant of an Option");
+        }
+        else {
+            return this.inner;
+        }
+    }
+    public map<R>(fn: (v: T) => R): Option<R> {
+        if (this.inner === undefined) {
+            return new Option(undefined) as Option<R>;
+        }
+        else {
+            return new Option(fn(this.inner));
         }
     }
 }
