@@ -1,3 +1,5 @@
+import {UString} from "./ustring"
+
 export abstract class Munum {
     
 }
