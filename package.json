@@ -4,9 +4,10 @@
   "description": "",
   "main": "out/init.lua",
   "scripts": {
-    "build": "rbxtsc",
-    "watch": "rbxtsc -w",
-    "prepublishOnly": "npm run build"
+    "build": "rbxtsc --type game",
+    "watch": "rbxtsc -w --type game",
+    "prepublishOnly": "npm run build",
+    "test": "npm run build && lune run runlunetests"
   },
   "keywords": [],
   "author": "",
@@ -25,6 +26,8 @@
     "typescript": "^5.4.5"
   },
   "dependencies": {
-    "@rbxts/services": "^1.5.4"
+    "@rbxts/services": "^1.5.4",
+    "@rbxts/testez": "^0.4.2-ts.0",
+    "roblox-ts": "^2.3.0"
   }
 }

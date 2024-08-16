@@ -1,0 +1,37 @@
+{
+    "name": "muon-rbxts",
+    "globIgnorePaths": [
+        "**/package.json",
+        "**/tsconfig.json"
+    ],
+    "tree": {
+        "$className": "DataModel",
+        "ReplicatedStorage": {
+            "$className": "ReplicatedStorage",
+            "rbxts_include": {
+                "$path": "include",
+                "node_modules": {
+                    "$className": "Folder",
+                    "@rbxts": {
+                        "$path": "node_modules/@rbxts"
+                    }
+                }
+            }
+        },
+        "ServerScriptService": {
+            "$className": "ServerScriptService",
+            "TS": {
+                "$className": "Folder",
+                "tests": {
+                    "$path": "out/tests"
+                },
+                "testrun": {
+                    "$path": "out/testrun"
+                },
+                "std": {
+                    "$path": "out/std"
+                }
+            }
+        }
+    }
+}

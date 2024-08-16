@@ -1,0 +1,45 @@
+import { panic } from "./stdio"
+import { create_named_symbol } from "./util";
+
+export interface REnum<T extends {[k: string]: any}> {
+    _innervalue: T[keyof T]
+    _typehint: T
+    _variant: number
+}
+
+export type EnumValue<T> = T;
+
+class Option<T extends defined> implements REnum<{Some: T, None: Vector3}> {
+    _typehint!: { Some: T; None: Vector3; };
+
+    public static Some: EnumValue<number> = 0;
+    public static None: EnumValue<number> = 1;
+    
+    _innervalue!: T;
+    _variant = Option.None;
+}
+
+type NeverAll<T> = {
+    [K in keyof T]: { [P in keyof T]?: P extends K ? never : T[P] }
+}[keyof T];
+  
+type AllowSomeButNotAll<T> = Partial<T> & NeverAll<T>;
+
+type MatchableTypes = REnum<any> | number | string;
+
+type ArmTable<T extends REnum<any>> = {[K in keyof T['_typehint']]: T['_typehint'][K] extends undefined ? () => any : (value: T['_typehint'][K]) => any};
+
+type PartialArmTable<T extends REnum<any>> = AllowSomeButNotAll<{[K in keyof T['_typehint']]: T['_typehint'][K] extends undefined ? () => any : (value: T['_typehint'][K]) => any}>
+
+function match<T extends REnum<any>, R = PartialArmTable<T> | ArmTable<T>>(
+    obj: T,
+    table: R,
+    ...fallthrough: (typeof table extends PartialArmTable<T> ? [(value: T['_typehint'][Exclude<keyof T['_typehint'], keyof typeof table>]) => any] : [])
+) {}
+
+let opt = new Option<string>();
+
+match(opt, {
+    Some: (x) => {},
+    _: (z: string | Vector3) => {}
+}, (v) => {});

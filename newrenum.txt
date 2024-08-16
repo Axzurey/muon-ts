@@ -1,0 +1,96 @@
+import { Option } from "./handle/option";
+import { panic } from "./stdio"
+import { create_named_symbol } from "./util";
+
+export interface REnum<T extends {[k: string]: any}> {
+    _innervalue: T[keyof T]
+    _typehint: T
+    _variant: number
+}
+
+export type EnumValue<T> = T;
+
+type NeverAll<T> = {
+    [K in keyof T]: { [P in keyof T]?: P extends K ? never : T[P] }
+}[keyof T];
+  
+type AllowSomeButNotAll<T> = Partial<T> & NeverAll<T>;
+
+type MatchableTypes = REnum<any> | number | string;
+
+type ArmTable<T extends REnum<any>, U> = {[K in keyof T['_typehint']]: T['_typehint'][K] extends never ? () => U : (value: T['_typehint'][K]) => U};
+
+type PartialArmTable<T extends REnum<any>, U> = AllowSomeButNotAll<{[K in keyof T['_typehint']]: T['_typehint'][K] extends never ? () => U : (value: T['_typehint'][K]) => U}>
+
+export function match<T extends REnum<any>, U, R = ArmTable<T, U>>(
+    obj: T,
+    tabl: R
+): ReturnType<typeof tabl[keyof typeof tabl]>;
+
+export function match<T extends REnum<any>, U, V, R = PartialArmTable<T, U>>(
+    obj: T,
+    tabl: R,
+    fallthrough: (value: T['_typehint'][Exclude<keyof T['_typehint'], keyof typeof table>]) => V
+): ReturnType<typeof tabl[keyof typeof tabl]> | V;
+
+export function match<V, R>(
+    obj: number,
+    tabl: {[k in number]: (value: number) => R},
+    fallthrough: (value: number) => V
+): ReturnType<typeof tabl[keyof typeof tabl]> | V;
+
+export function match<V, R>(
+    obj: string,
+    tabl: {[k in string]: (value: string) => R},
+    fallthrough: (value: string) => V
+): ReturnType<typeof tabl[keyof typeof tabl]> | V;
+
+export function match<T extends REnum<any>, U, V, R = PartialArmTable<T, U>>(
+    obj: T,
+    tabl: R,
+    fallthrough?: (value: T['_typehint'][Exclude<keyof T['_typehint'], keyof typeof tabl>]) => V
+): U | V {
+    if (typeIs(obj, "number")) {
+        if ((tabl as Record<number, any>)[obj]) {
+            return (tabl as Record<number, (val: number) => any>)[obj](obj);
+        }
+        else {
+            assert(fallthrough !== undefined, "Fallthrough must be provided when any match arms are not covered.")
+            return fallthrough!(obj._variant);
+        }
+    }
+    else if (typeIs(obj, "string")) {
+        if ((tabl as Record<string, (val: string) => any>)[obj]) {
+            return (tabl as Record<string, (val: string) => any>)[obj](obj);
+        }
+        else {
+            assert(fallthrough !== undefined, "Fallthrough must be provided when any match arms are not covered.")
+            return fallthrough!(obj._variant);
+        }
+    }
+    else if (obj['_variant'] !== undefined) {
+        if ((tabl as {[k: typeof obj._variant]: (val: typeof obj._variant) => any})[obj._variant]) {
+            return (tabl as {[k: typeof obj._variant]: (val: typeof obj._variant) => any})[obj._variant](obj._innervalue);
+        }
+        else {
+            assert(fallthrough !== undefined, "Fallthrough must be provided when any match arms are not covered.")
+            return fallthrough!(obj._variant);
+        }
+    }
+    else {
+        panic(`Object ${obj} is not allowed in a match statement`);
+    }
+}
+
+let n = 3;
+
+let v = match(n, {
+    3: () => 5
+}, (n) => "hello!")
+
+let opt = new Option<string>("hello world");
+
+let x = match(opt, {
+    Some: (x) => {return 1},
+    //None: () => {}
+}, (x) => {});
