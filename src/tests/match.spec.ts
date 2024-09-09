@@ -27,8 +27,8 @@ export = () => {
         let value = SomeEnum.create(SomeEnum.Bye, "good night!");
 
         let res = match(value, {
-            [SomeEnum.Hi]: () => 3,
-            [SomeEnum.Bye]: () => "hello",
+            [SomeEnum.Hi]: (x) => 3,
+            [SomeEnum.Bye]: (y) => "hello",
         }, (x) => 1);
 
         expect(res).to.equal("hello");

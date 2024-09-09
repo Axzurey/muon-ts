@@ -1,6 +1,6 @@
 import { Option } from "./handle/option";
 import { panic } from "./stdio"
-import { GetKeys, Indices } from "./types";
+import { IndicesOfArray, ParseInt } from "./types";
 import { create_named_symbol } from "./util";
 
 export abstract class REnum {
@@ -91,7 +91,7 @@ export function match<T extends REnum, U, V, R = PartialArmTable<T, U>>(
     }
 }
 
-type VariantListToTypehint<T extends [string, any][]> = {[k in keyof T]: EnumDefPair<k, T[k][1]>};
+type VariantListToTypehint<T extends readonly [string, any][]> = {[k in keyof T as T[k][0]]: EnumDefPair<ParseInt<k>, T[k][1]>};
 
 /**
  * This function signature is used as a type for the create_enum function. (please don't call this)
@@ -111,9 +111,7 @@ type TupleToIndexedObject<T extends ReadonlyArray<readonly [string, unknown]>> =
     }[number];
 };
 
-type ParseInt<T extends string> = T extends `${infer N extends number}` ? N : never;
-
-export function create_enum<X extends string, T extends readonly [X, U][], U>(variants: T) {
+export function create_enum<X extends string, T extends [X, U][], U>(variants: T) {
     let enumclass = class extends REnum {
         declare _typehint: VariantListToTypehint<typeof variants>;
 
@@ -125,7 +123,7 @@ export function create_enum<X extends string, T extends readonly [X, U][], U>(va
             this._variant = variant;
             this._innervalue = inner;
         }
-        static create<R extends Indices<typeof variants>>(variant: R, value: ReturnType<typeof variants[typeof variant][1]>) {
+        static create<R extends IndicesOfArray<typeof variants>>(variant: R, value: ReturnType<typeof variants[typeof variant][1]>) {
             return new this(variant, value);
         }
     }
@@ -135,12 +133,14 @@ export function create_enum<X extends string, T extends readonly [X, U][], U>(va
         (enumclass as unknown as {[k: string]: number})[variants[i][0]] = i;
     }
     //incase i need this later {[K in typeof variants[number][0]]: ReturnType<Extract<typeof variants[number], [K, any]>[1]>};
-    return enumclass as typeof enumclass & TupleToIndexedObject<typeof variants>;
+    return enumclass as (typeof enumclass) & TupleToIndexedObject<typeof variants>;
 }
-const list = ['foo', 'bar', 'baz'] as const;
-type zl = Indices<typeof list>
 
-type f = Exclude<zl, "xxza">
+type ld = VariantListToTypehint<readonly [
+    ["A", String],
+    ["B", number],
+    ["C", boolean]
+]>
 
 let myclass = create_enum([
     ["A", ENode<String>],
@@ -148,12 +148,19 @@ let myclass = create_enum([
     ["C", ENode<boolean>]
 ] as const);
 
-type Result = TupleToIndexedObject<[
-    ["A", String],
-    ["B", number],
-    ["C", boolean]
-]>;
+let m = myclass.create(myclass.A, "hello")
 
-let m = myclass.create(myclass.A, "3")
+match(m, {
+    [myclass.A]: (x) => {},
+    [myclass.B]: (x) => {},
+    [myclass.C]: (x) => {}
+})
+
+// manual notation works
+// match(m, {
+//     [myclass.A]: (x: String) => {},
+//     [myclass.B]: (x: number) => {},
+//     [myclass.C]: (x: boolean) => {}
+// })
 
 type l = typeof myclass[keyof typeof myclass];
