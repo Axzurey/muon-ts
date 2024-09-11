@@ -1,6 +1,6 @@
 import { Option } from "./handle/option";
 import { panic } from "./stdio"
-import { IndicesOfArray, ParseInt } from "./types";
+import { IndicesOfArray, NOOP, ParseInt } from "./types";
 import { create_named_symbol } from "./util";
 
 export abstract class REnum {
@@ -29,7 +29,7 @@ type GetFirst<T> = {[k in keyof T]: T[k] extends any[] ? T[k][0] : never}[keyof 
 
 export type FindVal<T, V> = Exclude<keyof T, keyof ExcludeMembers<{[k in keyof T]: T[k] extends any[] ? T[k][0] extends V ? never : 1 : 3}, never>>
 
-type TKeyofT<T> = T[keyof T];
+type TKeyofT<T> = NOOP<T[keyof T]>;
 
 export function match<T extends REnum, U, R = ArmTable<T, U>>(
     obj: T,
@@ -65,7 +65,7 @@ export function match<T extends REnum, U, V, R = PartialArmTable<T, U>>(
         }
         else {
             assert(fallthrough !== undefined, "Fallthrough must be provided when any match arms are not covered.")
-            return fallthrough!(obj._variant);
+            return fallthrough!(obj);
         }
     }
     else if (typeIs(obj, "string")) {
@@ -74,7 +74,7 @@ export function match<T extends REnum, U, V, R = PartialArmTable<T, U>>(
         }
         else {
             assert(fallthrough !== undefined, "Fallthrough must be provided when any match arms are not covered.")
-            return fallthrough!(obj._variant);
+            return fallthrough!(obj);
         }
     }
     else if (obj['_variant'] !== undefined) {
@@ -91,7 +91,7 @@ export function match<T extends REnum, U, V, R = PartialArmTable<T, U>>(
     }
 }
 
-type VariantListToTypehint<T extends readonly [string, any][]> = {[k in keyof T as T[k][0]]: EnumDefPair<ParseInt<k>, T[k][1]>};
+type VariantListToTypehint<T extends readonly (readonly [string, any])[]> = {[k in IndicesOfArray<T> as T[k][0]]: EnumDefPair<k, ReturnType<T[k][1]>>};
 
 /**
  * This function signature is used as a type for the create_enum function. (please don't call this)
@@ -111,7 +111,7 @@ type TupleToIndexedObject<T extends ReadonlyArray<readonly [string, unknown]>> =
     }[number];
 };
 
-export function create_enum<X extends string, T extends [X, U][], U>(variants: T) {
+export function create_enum<X extends string, T extends readonly (readonly [X, U])[], U>(variants: T) {
     let enumclass = class extends REnum {
         declare _typehint: VariantListToTypehint<typeof variants>;
 
@@ -135,32 +135,3 @@ export function create_enum<X extends string, T extends [X, U][], U>(variants: T
     //incase i need this later {[K in typeof variants[number][0]]: ReturnType<Extract<typeof variants[number], [K, any]>[1]>};
     return enumclass as (typeof enumclass) & TupleToIndexedObject<typeof variants>;
 }
-
-type ld = VariantListToTypehint<readonly [
-    ["A", String],
-    ["B", number],
-    ["C", boolean]
-]>
-
-let myclass = create_enum([
-    ["A", ENode<String>],
-    ["B", ENode<number>],
-    ["C", ENode<boolean>]
-] as const);
-
-let m = myclass.create(myclass.A, "hello")
-
-match(m, {
-    [myclass.A]: (x) => {},
-    [myclass.B]: (x) => {},
-    [myclass.C]: (x) => {}
-})
-
-// manual notation works
-// match(m, {
-//     [myclass.A]: (x: String) => {},
-//     [myclass.B]: (x: number) => {},
-//     [myclass.C]: (x: boolean) => {}
-// })
-
-type l = typeof myclass[keyof typeof myclass];

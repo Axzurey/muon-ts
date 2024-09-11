@@ -1,6 +1,8 @@
 /// <reference types="@rbxts/testez/globals" />
 import "@rbxts/testez"
-import { EnumDefPair, EnumValue, FindVal, REnum, match } from "../std/renum";
+import { ENode, EnumDefPair, EnumValue, FindVal, REnum, create_enum, match } from "../std/renum";
+import { Option, Some } from "../std/handle/option";
+import { Err, Result } from "../std/handle/result";
 
 export = () => {
     it("should match enums properly", () => {
@@ -43,4 +45,66 @@ export = () => {
             //[3]: (x) => 2, should not work
         }, (v) => 3)).to.equal(3);
     });
+
+    it("Should support automated enum creation", () => {
+        let myclass = create_enum([
+            ["A", ENode<String>],
+            ["B", ENode<number>],
+            ["C", ENode<boolean>]
+        ] as const);
+
+        //basic matching
+        let variant = myclass.create(myclass.A, "hello!");
+
+        expect(match(variant, {
+            [myclass.A]: (x) => 1,
+            [myclass.B]: (x) => 2,
+            [myclass.C]: (x) => 2
+        })).to.be.equal(1);
+
+        //nested matching
+
+        variant = myclass.create(myclass.B, 3);
+
+        expect(match(variant, {
+            [myclass.A]: () => 1,
+            [myclass.B]: (x) => {
+                return match(x, {
+                    [1]: () => "ONE",
+                    [3]: () => "THREE"
+                }, (fallthrough) => "FALL")
+            },
+            [myclass.C]: () => 3
+        })).to.be.equal("THREE");
+
+        variant = myclass.create(myclass.B, 4);
+
+        //nested matching w/fallthrough
+        expect(match(variant, {
+            [myclass.A]: () => 1,
+            [myclass.B]: (x) => {
+                return match(x, {
+                    [1]: () => "ONE",
+                    [3]: () => "THREE"
+                }, (fallthrough) => "NEITHER")
+            },
+            [myclass.C]: () => 3
+        })).to.be.equal("NEITHER");
+    })
+
+    it("Should work on results and options :)", () => {
+        let option = Some(3);
+
+        match(option, {
+            [Option.Some]: (x) => "uno",
+            [Option.None]: () => "None variant! (no parameter)"
+        });
+
+        let result = Err("IT's AN ERROR!") as Result<number, string>;
+
+        match(result, {
+            [Result.Ok]: (x) => {},
+            [Result.Err]: (z) => {}
+        })
+    })
 }
