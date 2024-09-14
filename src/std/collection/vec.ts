@@ -2,6 +2,7 @@ import { Option, Maybe } from "../handle/option";
 import { Err, Ok, Result } from "../handle/result";
 import { EnumDefPair, EnumType, EnumValue, EnumVariants, FindVal, REnum } from "../renum";
 import { panic } from "../stdio";
+import { RIterator } from "./RIterator";
 
 export class VecErr extends REnum {
     declare _typehint: {Frozen: EnumDefPair<0, string>, OutOfBounds: EnumDefPair<1, string>};
@@ -32,6 +33,10 @@ export class Vec<T extends defined> {
     }
     static with_capacity<T extends defined>(size: number): Vec<T> {
         return new Vec(table.create(size));
+    }
+    iter(): RIterator<T> {
+
+        return new RIterator(this);
     }
     freeze() {
         table.freeze(this.values);
