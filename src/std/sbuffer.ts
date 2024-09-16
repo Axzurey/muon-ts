@@ -19,7 +19,7 @@ export class SBuffer {
     }
     write_u8_unsafe(u8: number): number {
         buffer.writeu8(this.internal, this.offset, u8);
-        this.offset += 2;
+        this.offset += 1;
         return this.offset;
     }
     write_u8(u8: number) {
@@ -27,10 +27,33 @@ export class SBuffer {
     }
     next_u8(offset?: number): number {
         let u8 = buffer.readu8(this.internal, offset === undefined ? this.offset : offset);
-        this.offset += 2;
+        this.offset += 1;
         return u8;
     }
-    write_u16(u16: number) {
+    write_u16_unsafe(u16: number): number {
         buffer.writeu16(this.internal, this.offset, u16);
+        this.offset += 2;
+        return this.offset;
+    }
+    write_u16(u16: number) {
+        return try_op(() => this.write_u16_unsafe(u16), BufferError.BufferOutOfBounds);
+    }
+    next_u16(offset?: number): number {
+        let u16 = buffer.readu16(this.internal, offset === undefined ? this.offset : offset);
+        this.offset += 2;
+        return u16;
+    }
+    write_u32_unsafe(u32: number): number {
+        buffer.writeu32(this.internal, this.offset, u32);
+        this.offset += 4;
+        return this.offset;
+    }
+    write_u32(u32: number) {
+        return try_op(() => this.write_u16_unsafe(u32), BufferError.BufferOutOfBounds);
+    }
+    next_u32(offset?: number): number {
+        let u32 = buffer.readu32(this.internal, offset === undefined ? this.offset : offset);
+        this.offset += 4;
+        return u32;
     }
 }
