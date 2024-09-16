@@ -1,9 +1,9 @@
 import { ENode, create_enum } from "./renum";
 import { try_op } from "./stdio";
 
-export const BufferError = create_enum([[
-    "BufferOutOfBounds", ENode<number>
-]]);
+export const BufferError = create_enum([
+    ["BufferOutOfBounds", ENode<never>]    
+] as const);
 
 export class SBuffer {
     private internal: buffer;
@@ -55,5 +55,21 @@ export class SBuffer {
         let u32 = buffer.readu32(this.internal, offset === undefined ? this.offset : offset);
         this.offset += 4;
         return u32;
+    }
+    write_string8_unsafe(str8: string): number {
+        for (let i = 0; i < str8.size(); i++) {
+            let [byte] = str8.byte(i, i);
+            buffer.writeu8(this.internal, this.offset, byte);
+        }
+        this.offset += str8.size();
+        return this.offset;
+    }
+    write_string8(str8: string) {
+        return try_op(() => this.write_string8_unsafe(str8), BufferError.BufferOutOfBounds);
+    }
+    next_string8(offset?: number): number {
+        let str8 = buffer.readu8(this.internal, offset === undefined ? this.offset : offset);
+        this.offset += 1;
+        return str8;
     }
 }
