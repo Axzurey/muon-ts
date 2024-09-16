@@ -112,14 +112,16 @@ function recursive_add(path: string, parent: Instance)
 		--print(path .. "/" .. name)
 		if fs.isFile(path .. "/" .. name) then
 			local split = string.split(name, ".");
-			if split[#split] ~= "lua" or name[1] == "init" then
+			if (split[#split] ~= "lua" and split[#split] ~= "luau") or name[1] == "init" then
 				--print(path, name, "not lua")
 				continue;
 			end
 			add_to_game(parent, split[2] == "spec" and split[1] .. "." .. split[2] or split[1], split[2] == "server", fs.readFile(path .. "/" .. name));
 		end
 		if fs.isDir(path .. "/" .. name) then
-			if has_named(path .. "/" .. name, "init.lua") then
+			if has_named(path .. "/" .. name, "init.luau") then
+				add_to_game_module(parent, name, fs.readFile(path .. "/" .. name .. "/init.luau"));
+			elseif has_named(path .. "/" .. name, "init.lua") then
 				add_to_game_module(parent, name, fs.readFile(path .. "/" .. name .. "/init.lua"));
 			else
 				add_to_game_folder(parent, name);

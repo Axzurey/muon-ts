@@ -12,9 +12,9 @@ export = () => {
 
         buffer.move_cursor(0);
 
-        expect(buffer.next_u8()).to.be.equal(16);
-        expect(buffer.next_u8()).to.be.equal(1);
-        expect(buffer.next_u16()).to.be.equal(2);
-        expect(buffer.next_u32()).to.be.equal(1432);
+        expect(buffer.next_u8().unwrap()).to.be.equal(16);
+        expect(buffer.next_u8().unwrap()).to.be.equal(1);
+        expect(buffer.next_u16().unwrap()).to.be.equal(2);
+        expect(buffer.next_u32().unwrap()).to.be.equal(1432);
     });
 }

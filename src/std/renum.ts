@@ -111,6 +111,8 @@ type TupleToIndexedObject<T extends ReadonlyArray<readonly [string, unknown]>> =
     }[number];
 };
 
+export type VariantOf<T extends {['_typehint']: any}> = TKeyofT<{[k in keyof T['_typehint']]: T['_typehint'][k][0]}>
+
 export function create_enum<X extends string, T extends readonly (readonly [X, U])[], U>(variants: T) {
     let enumclass = class extends REnum {
         declare _typehint: VariantListToTypehint<typeof variants>;
@@ -133,5 +135,5 @@ export function create_enum<X extends string, T extends readonly (readonly [X, U
         (enumclass as unknown as {[k: string]: number})[variants[i][0]] = i;
     }
     //incase i need this later {[K in typeof variants[number][0]]: ReturnType<Extract<typeof variants[number], [K, any]>[1]>};
-    return enumclass as (typeof enumclass) & TupleToIndexedObject<typeof variants>;
+    return enumclass as (typeof enumclass) & TupleToIndexedObject<typeof variants> & {['_typehint']: VariantListToTypehint<typeof variants>};
 }
