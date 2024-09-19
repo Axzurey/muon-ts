@@ -1,1 +1,1 @@
-#Making typescript better with some rust influenced additions
+Making typescript better with some rust influenced additions
