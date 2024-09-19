@@ -4,7 +4,7 @@
   "description": "",
   "main": "out/init.lua",
   "scripts": {
-    "build": "rbxtsc --type game",
+    "build": "rbxtsc --type game --luau=false",
     "watch": "rbxtsc -w --type game",
     "prepublishOnly": "npm run build",
     "test": "npm run build && lune run runlunetests"

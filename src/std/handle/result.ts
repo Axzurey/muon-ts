@@ -1,5 +1,4 @@
 import { EnumDefPair, EnumValue, REnum } from "../renum";
-import { panic } from "../stdio";
 
 export class Result<T extends defined, E extends defined> implements REnum {
     _typehint!: {Ok: EnumDefPair<0, T>, Err: EnumDefPair<1, E>};
@@ -18,13 +17,13 @@ export class Result<T extends defined, E extends defined> implements REnum {
             this._variant = Result.Err;
         }
         else {
-            panic("Invalid Result variant");
+            error("Invalid Result variant");
         }
         this._innervalue = value;
     }
     public unwrap(): T {
         if (this.is_err()) {
-            panic("Attempt to unwrap an Err variant of a Result");
+            error("Attempt to unwrap an Err variant of a Result");
         }
         else {
             return this._innervalue as T;

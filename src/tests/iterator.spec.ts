@@ -5,7 +5,7 @@ import { Vec } from "../std/collection/vec";
 
 export = () => {
     it("should work properly with all iterator adapters", () => {
-        let iterator = new RIterator(new Vec([1, 2, 3, 4, 5]));
+        let iterator = new Vec([1, 2, 3, 4, 5]).iter();
 
         let mapped = iterator.map((v) => v ** 2);
 
@@ -17,5 +17,7 @@ export = () => {
         expect(mapped.next().unwrap()).to.equal(25);
 
         expect(mapped.next().is_some()).to.equal(false);
+
+       
     });
 }

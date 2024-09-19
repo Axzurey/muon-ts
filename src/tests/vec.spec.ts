@@ -3,7 +3,7 @@ import "@rbxts/testez"
 import { Vec } from "../std/collection/vec";
 
 export = () => {
-    it("should properly order elements", () => {
+    it("testing vecs", () => {
         {
             //should be able to get elements in order
             let vec = new Vec([0, 1, 2, 3, 4, 5, 6, 7]);
@@ -34,6 +34,15 @@ export = () => {
             vec.insert(1, 1)
 
             expect(vec.get(1).unwrap()).to.equal(1);
+        }
+
+        {
+            //test freezing vecs
+            let vec = new Vec([0, 2, 3, 4, 5]);
+
+            vec.freeze();
+
+            expect(vec.clear().is_ok()).to.be.equal(false);
         }
     });
 }

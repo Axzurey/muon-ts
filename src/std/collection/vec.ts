@@ -1,6 +1,6 @@
 import { Option, Maybe } from "../handle/option";
 import { Err, Ok, Result } from "../handle/result";
-import { EnumDefPair, EnumType, EnumValue, EnumVariants, FindVal, REnum } from "../renum";
+import { EnumDefPair, EnumType, EnumValue, EnumVariants, REnum } from "../renum";
 import { panic } from "../stdio";
 import { RIterator } from "./RIterator";
 
